@@ -4,16 +4,28 @@ import { castDraft, createDraft, Draft, finishDraft, isDraft, isDraftable } from
 
 export const isPromise = <T>(obj: any): obj is Promise<T> => obj && typeof obj.then === 'function'
 
-const _finishDraft = (s: any) => {
-	if (isDraft(s)) {
-		return finishDraft(s);
-	}
-	return s;
-}
-
 export const thunkMiddleware: Middleware<any> = ({getState, getMaps, dispatch}) => next => record => {
 	if (typeof record.state === 'function') {
-		
+		let draftCache: any[] = [];
+
+		const _finishDraft = (s: any) => {
+			let _s = s;
+			if (Array.isArray(draftCache) && draftCache.length > 1 && _s === undefined) {
+				console.error(`natur-immer: you may forgeted returning state`);
+				return _s;
+			}
+			if (Array.isArray(draftCache) && draftCache.length >= 1 && _s !== undefined) {
+				draftCache = draftCache.filter(i => i !== _s);
+			}
+			if (Array.isArray(draftCache) && draftCache.length === 1 && _s === undefined) {
+				_s = draftCache.pop();
+			}
+			if (isDraft(_s)) {
+				return finishDraft(s);
+			}
+			return _s;
+		}
+
 		const setState = (s: State) => {
             return next({
                 ...record,
@@ -31,7 +43,9 @@ export const thunkMiddleware: Middleware<any> = ({getState, getMaps, dispatch}) 
         const _getState = () => {
 			const s = getState();
             if (isDraftable(s)) {
-                return createDraft(s);
+				const ds = createDraft(s);
+				draftCache.push(ds);
+                return ds;
             } else {
 				console.warn(`natur-immer: ${record.moduleName}/${record.actionName} state can not use immer!`);
 			}
@@ -55,7 +69,7 @@ export const promiseMiddleware: Middleware<any> = () => next => record => {
 		return (record.state as Promise<ReturnType<Action>>)
 			.then(ns => next({
 				...record,
-				state: _finishDraft(ns),
+				state: ns,
 			}));
 	}
 	return next(record);
