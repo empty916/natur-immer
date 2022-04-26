@@ -6,7 +6,7 @@ export const isPromise = <T>(obj: any): obj is Promise<T> => obj && typeof obj.t
 
 export const thunkMiddleware: Middleware<any> = ({getState, getMaps, dispatch}) => next => record => {
 	if (typeof record.state === 'function') {
-		let draftCache: any[] = [];
+		let draftCache: {s: any, ds: any}[] = [];
 
 		const _finishDraft = (s: any) => {
 			let _s = s;
@@ -15,10 +15,19 @@ export const thunkMiddleware: Middleware<any> = ({getState, getMaps, dispatch}) 
 				return _s;
 			}
 			if (Array.isArray(draftCache) && draftCache.length >= 1 && _s !== undefined) {
-				draftCache = draftCache.filter(i => i !== _s);
+				draftCache = draftCache.filter(i => i.ds !== _s);
 			}
 			if (Array.isArray(draftCache) && draftCache.length === 1 && _s === undefined) {
-				_s = draftCache.pop();
+				const item = draftCache.pop()!;
+				_s = item.ds;
+				if (isDraft(_s)) {
+					const ns = finishDraft(_s);
+					// 如果没有返回state，但是有获取过state，并且state没有发生改变，那么就返回undefined
+					if (ns === item.s) {
+						return undefined;
+					}
+					return ns;
+				}
 			}
 			if (isDraft(_s)) {
 				return finishDraft(_s);
@@ -44,7 +53,10 @@ export const thunkMiddleware: Middleware<any> = ({getState, getMaps, dispatch}) 
 			const s = getState();
             if (isDraftable(s)) {
 				const ds = createDraft(s);
-				draftCache.push(ds);
+				draftCache.push({
+					s: s,
+					ds: ds,
+				});
                 return ds;
             } else {
 				console.warn(`natur-immer: ${record.moduleName}/${record.actionName} state can not use immer!`);

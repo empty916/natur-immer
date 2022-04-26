@@ -70,6 +70,10 @@ const _createStore = () => {
             const res = await mockFetchTodo();
             ns.todo.push(...res);
         },
+        fetchTodoWithoutReturn1: () => async ({getState}: ThunkParams<State>) => {
+            const ns = getState();
+            const res = await mockFetchTodo();
+        },
         fetchTodoWithoutReturn2: () => async ({getState}: ThunkParams<State>) => {
             const ns = getState();
             const res = await mockFetchTodo2();
@@ -162,6 +166,13 @@ test('async paralle', async () => {
     expect(store.getModule('user').state.todo.length).toBe(5);
 });
 
+test('return', async () => {
+    const user = store.getModule('user');
+    const res = await user.actions.fetchTodoWithoutReturn();
+    const res1 = await user.actions.fetchTodoWithoutReturn1();
+    expect(res).not.toBe(undefined);
+    expect(res1).toBe(undefined);
+});
 
 test('async without return', async () => {
     const user = store.getModule('user');
