@@ -1,6 +1,6 @@
 {
   "name": "natur-immer",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "immmer middleware of natur",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,6 +10,9 @@
     "prepublish": "npm run test && npm run build",
     "pub": "yarn publish"
   },
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://empty916@github.com/empty916/natur-immer.git"
