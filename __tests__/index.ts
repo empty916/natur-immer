@@ -62,8 +62,10 @@ const _createStore = () => {
         },
         compatibilityAndMemoryOversizeTestAction: () => ({getState}: ThunkParams<State>) => {
             getState();
-            getState();
-            return getState();
+            const s = getState();
+            return {
+                ...s
+            };
         },
         updateAge: (age: number) => ({getState}: ThunkParams<State>) => {
             const ns = getState();
