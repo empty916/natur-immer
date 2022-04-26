@@ -53,6 +53,18 @@ const _createStore = () => {
     };
     type State = typeof state;
     const actions = {
+        badAction: (age: number) => ({getState}: ThunkParams<State>) => {
+            const ns = getState();
+            ns.age = age;
+            
+            const ns2 = getState();
+            ns2.name = 'age';
+        },
+        compatibilityAndMemoryOversizeTestAction: () => ({getState}: ThunkParams<State>) => {
+            getState();
+            getState();
+            return getState();
+        },
         updateAge: (age: number) => ({getState}: ThunkParams<State>) => {
             const ns = getState();
             ns.age = age;
@@ -329,3 +341,17 @@ test('async without return in paraller3', async () => {
     });
 });
 
+
+test('async bad action', () => {
+    const user = store.getModule('user');
+    user.actions.badAction(1);
+    expect(store.getModule('user').state).toBe(undefined);
+})
+
+test('compatibilityAndMemoryOversizeTestAction', () => {
+    const user = store.getModule('user');
+    for(let i = 0; i<10000000; i++) {
+        user.actions.compatibilityAndMemoryOversizeTestAction();
+    }
+    expect(store.getModule('user').state).toBe(user.state);
+});
