@@ -10,7 +10,6 @@ export const thunkMiddleware: Middleware<any> = ({getState, getMaps, dispatch}) 
 
 		const _finishDraft = (s: any) => {
 			let _s = s;
-			!s && console.log(draftCache.length)
 			if (Array.isArray(draftCache) && draftCache.length > 1 && _s === undefined) {
 				console.error(`natur-immer: you may forgeted returning state`);
 				return _s;
