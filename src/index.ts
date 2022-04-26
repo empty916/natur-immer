@@ -71,13 +71,3 @@ export const thunkMiddleware: Middleware<any> = ({getState, getMaps, dispatch}) 
 	}
 	return next(record);
 }
-export const promiseMiddleware: Middleware<any> = () => next => record => {
-	if (isPromise<ReturnType<Action>>(record.state)) {
-		return (record.state as Promise<ReturnType<Action>>)
-			.then(ns => next({
-				...record,
-				state: ns,
-			}));
-	}
-	return next(record);
-}

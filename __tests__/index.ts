@@ -1,6 +1,6 @@
-import { thunkMiddleware, promiseMiddleware } from './../src/index';
+import { thunkMiddleware } from './../src/index';
 import { createStore } from 'natur';
-import { ThunkParams } from 'natur/dist/middlewares';
+import { ThunkParams, promiseMiddleware } from 'natur/dist/middlewares';
 
 
 let id = 1;
