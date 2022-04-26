@@ -10,6 +10,7 @@ export const thunkMiddleware: Middleware<any> = ({getState, getMaps, dispatch}) 
 
 		const _finishDraft = (s: any) => {
 			let _s = s;
+			!s && console.log(draftCache.length)
 			if (Array.isArray(draftCache) && draftCache.length > 1 && _s === undefined) {
 				console.error(`natur-immer: you may forgeted returning state`);
 				return _s;
@@ -21,7 +22,7 @@ export const thunkMiddleware: Middleware<any> = ({getState, getMaps, dispatch}) 
 				_s = draftCache.pop();
 			}
 			if (isDraft(_s)) {
-				return finishDraft(s);
+				return finishDraft(_s);
 			}
 			return _s;
 		}
@@ -57,6 +58,13 @@ export const thunkMiddleware: Middleware<any> = ({getState, getMaps, dispatch}) 
             getMaps,
             dispatch: _dispatch
         });
+		if (isPromise<ReturnType<Action>>(ns)) {
+			return (ns as Promise<ReturnType<Action>>)
+				.then(ns => next({
+					...record,
+					state: _finishDraft(ns),
+				}));
+		}
 		return next({
 			...record,
 			state: _finishDraft(ns),
