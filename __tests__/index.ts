@@ -344,13 +344,13 @@ test('async without return in paraller3', async () => {
 
 test('async bad action', () => {
     const user = store.getModule('user');
-    user.actions.badAction(1);
-    expect(store.getModule('user').state).toBe(undefined);
+    expect(() => user.actions.badAction(1)).toThrow();
+    // expect(store.getModule('user').state).toBe(undefined);
 })
 
 test('compatibilityAndMemoryOversizeTestAction', () => {
     const user = store.getModule('user');
-    for(let i = 0; i<10000000; i++) {
+    for(let i = 0; i<1000000; i++) {
         user.actions.compatibilityAndMemoryOversizeTestAction();
     }
     expect(store.getModule('user').state).toBe(user.state);

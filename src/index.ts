@@ -11,8 +11,7 @@ export const thunkMiddleware: Middleware<any> = ({getState, getMaps, dispatch}) 
 		const _finishDraft = (s: any) => {
 			let _s = s;
 			if (Array.isArray(draftCache) && draftCache.length > 1 && _s === undefined) {
-				console.error(`natur-immer: you may forgeted returning state`);
-				return _s;
+				throw new Error(`natur-immer: you may forgeted returning state`);
 			}
 			if (Array.isArray(draftCache) && draftCache.length >= 1 && _s !== undefined) {
 				draftCache = draftCache.filter(i => i.ds !== _s);
@@ -31,6 +30,8 @@ export const thunkMiddleware: Middleware<any> = ({getState, getMaps, dispatch}) 
 			}
 			if (isDraft(_s)) {
 				return finishDraft(_s);
+			} else if(!!_s) {
+				throw new Error('please return a immer draft object instead of a plain object');
 			}
 			return _s;
 		}
@@ -59,6 +60,10 @@ export const thunkMiddleware: Middleware<any> = ({getState, getMaps, dispatch}) 
 				});
                 return ds;
             } else {
+				draftCache.push({
+					s: s,
+					ds: s,
+				});
 				console.warn(`natur-immer: ${record.moduleName}/${record.actionName} state can not use immer!`);
 			}
             return s;
