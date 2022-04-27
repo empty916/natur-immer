@@ -10,9 +10,49 @@ import {
   Patch,
   applyPatches,
   original,
+  Immer,
 } from "immer";
+import { processResult } from "immer/dist/internal";
 
 enablePatches();
+
+
+function isPlainObject (obj: any) {
+	return Object.prototype.toString.call(obj) === '[object Object]' && obj !== null;
+}
+
+export function doFinalize(_obj: any) {
+	const cache = new Map();
+	const finalize = (obj: any = _obj) => {
+		if (cache.has(obj)) {
+			return cache.get(obj);
+		}
+		if (isDraft(obj)) {
+			const res = finishDraft(obj);
+			cache.set(obj, res);
+			return res;
+		}
+		if (isPlainObject(obj)) {
+			cache.set(obj, obj);
+			Object.keys(obj).forEach(k => {
+				cache.set(obj[k], finalize(obj[k]));
+				obj[k] = finalize(obj[k]);
+			});
+		}
+		if (Array.isArray(obj)) {
+			cache.set(obj, obj);
+			obj.forEach((i, idx) => {
+				obj[idx] = finalize(i);
+			});
+		}
+
+		return obj;
+	}
+	const res = finalize(_obj);
+	cache.clear();
+	return res;
+}
+
 
 export const isPromise = <T>(obj: any): obj is Promise<T> =>
   obj && typeof obj.then === "function";
@@ -48,6 +88,7 @@ export const thunkMiddleware: Middleware<any> =
         }
         if (!!s && draftCache.length) {
 			applyPatchesToState(draftCache);
+			// return processResult(myImmer, s);
 		}
         return s;
       };
