@@ -40,27 +40,23 @@ export const thunkMiddleware: Middleware<any> =
       };
 
       const _finishDraft = (s: any) => {
-        let _s = s;
-        if (draftCache.length >= 1 && _s === undefined) {
+        if (draftCache.length >= 1 && s === undefined) {
           return applyPatchesToState(draftCache);
         }
-        // this is setState case, possibly
-        if (draftCache.length >= 1 && _s !== undefined) {
-          draftCache = draftCache.filter((i) => i !== _s);
+        if (draftCache.length >= 1 && isDraft(s)) {
+			return applyPatchesToState(draftCache);
         }
-        if (isDraft(_s)) {
-          return applyPatchesToState([_s]);
-        } else if (!!_s && draftCache.length) {
-          applyPatchesToState(draftCache);
-          return _s;
-        }
-        return _s;
+        if (!!s && draftCache.length) {
+			applyPatchesToState(draftCache);
+		}
+        return s;
       };
 
       const setState = (s: State) => {
+		draftCache = draftCache.filter((i) => i !== s);
         return next({
           ...record,
-          state: _finishDraft(s),
+          state: applyPatchesToState([s]),
         });
       };
       const _dispatch = (action: string, ...arg: any[]) => {

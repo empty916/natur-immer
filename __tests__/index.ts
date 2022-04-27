@@ -1,6 +1,12 @@
 import { thunkMiddleware } from './../src/index';
 import { createStore } from 'natur';
-import { ThunkParams, promiseMiddleware } from 'natur/dist/middlewares';
+import {
+    ThunkParams,
+    promiseMiddleware,
+    fillObjectRestDataMiddleware,
+    shallowEqualMiddleware, 
+    filterUndefinedMiddleware,
+} from 'natur/dist/middlewares';
 
 
 let id = 1;
@@ -72,6 +78,12 @@ const _createStore = () => {
             const s = getState();
             return s;
         },
+        compatibilityAndMemoryOversizeTestAction2: () => ({getState}: ThunkParams<State>) => {
+            const s = getState();
+            return {
+                age: s.age + 1,
+            };
+        },
         updateAge: (age: number) => ({getState}: ThunkParams<State>) => {
             const ns = getState();
             ns.age = age;
@@ -110,8 +122,11 @@ const _createStore = () => {
         }
     }, {}, {
         middlewares: [
-            thunkMiddleware,
-            promiseMiddleware
+            thunkMiddleware, // action支持返回函数，并获取最新数据
+            promiseMiddleware, // action支持异步操作
+            fillObjectRestDataMiddleware, // 增量更新/覆盖更新
+            shallowEqualMiddleware, // 新旧state浅层对比优化
+            filterUndefinedMiddleware, // 过滤无返回值的action
         ]
     })
 }
@@ -372,4 +387,12 @@ test('compatibilityAndMemoryOversizeTestAction', () => {
         user.actions.compatibilityAndMemoryOversizeTestAction();
     }
     expect(store.getModule('user').state).toBe(user.state);
+});
+
+test('compatibilityAndMemoryOversizeTestAction2', () => {
+    const user = store.getModule('user');
+    for(let i = 0; i<100000; i++) {
+        user.actions.compatibilityAndMemoryOversizeTestAction2();
+    }
+    expect(store.getModule('user').state.age).toBe(user.state.age + 100000);
 });
