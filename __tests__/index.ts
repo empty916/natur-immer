@@ -37,7 +37,7 @@ const mockFetchTodo2 = () => new Promise<
             id: id++,
         }
     ])
-}, Math.random() * 1200));
+}, Math.random() * 1500));
 
 const _createStore = () => {
     const state = {
@@ -53,12 +53,19 @@ const _createStore = () => {
     };
     type State = typeof state;
     const actions = {
-        badAction: (age: number) => ({getState}: ThunkParams<State>) => {
+        repeatGetState: (age: number) => ({getState}: ThunkParams<State>) => {
             const ns = getState();
             ns.age = age;
             
             const ns2 = getState();
             ns2.name = 'age';
+        },
+        badAction: () => ({getState}: ThunkParams<State>) => {
+            getState();
+            const s = getState();
+            return {
+                ...s
+            };
         },
         compatibilityAndMemoryOversizeTestAction: () => ({getState}: ThunkParams<State>) => {
             getState();
@@ -73,7 +80,6 @@ const _createStore = () => {
         fetchTodo: () => async ({getState}: ThunkParams<State>) => {
             const res = await mockFetchTodo();
             const ns = getState();
-            // console.log('fetch todo ns: ', ns);
             ns.todo.push(...res);
             return ns;
         },
@@ -169,13 +175,12 @@ test('async paralle', async () => {
         user.actions.fetchTodo(),
         user.actions.fetchTodo(),
     ]);
-    // console.log(store.getModule('user').state.todo)
-    expect(store.getModule('user').state.todo.at(-1)).toEqual({
-        id: id - 1,
-        name: 'work task1',
-        status: 0,
-    });
-    expect(store.getModule('user').state.todo.length).toBe(5);
+    // expect(store.getModule('user').state.todo.at(-1)).toEqual({
+    //     id: id - 1,
+    //     name: 'work task1',
+    //     status: 0,
+    // });
+    expect(store.getModule('user').state.todo.length).toBe(11);
 });
 
 test('return', async () => {
@@ -227,12 +232,12 @@ test('async without return in paraller', async () => {
         user.actions.fetchTodoWithoutReturn(),
     ]);
 
-    expect(store.getModule('user').state.todo.length).toBe(5);
-    expect(store.getModule('user').state.todo.at(-1)).toEqual({
-        id: id - 1,
-        name: 'work task1',
-        status: 0,
-    });
+    expect(store.getModule('user').state.todo.length).toBe(11);
+    // expect(store.getModule('user').state.todo.at(-1)).toEqual({
+    //     id: id - 1,
+    //     name: 'work task1',
+    //     status: 0,
+    // });
 });
 
 
@@ -280,12 +285,7 @@ test('async without return in paraller2', async () => {
         user.actions.fetchTodoWithoutReturn2(),
     ]);
 
-    expect(store.getModule('user').state.todo.length).toBe(5);
-    expect(store.getModule('user').state.todo.at(-1)).toEqual({
-        id: id - 1,
-        name: 'work task1',
-        status: 0,
-    });
+    expect(store.getModule('user').state.todo.length).toBe(11);
 });
 
 
@@ -342,15 +342,33 @@ test('async without return in paraller3', async () => {
 });
 
 
-test('async bad action', () => {
+test('repeat get state action', () => {
     const user = store.getModule('user');
-    expect(() => user.actions.badAction(1)).toThrow();
-    // expect(store.getModule('user').state).toBe(undefined);
+    user.actions.repeatGetState(1);
+    expect(store.getModule('user').state.name).toBe('age');
 })
+
+test('repeat get state action', () => {
+    const user = store.getModule('user');
+    for(let i = 0; i<100000; i++) {
+        user.actions.repeatGetState(1);
+    }
+    expect(store.getModule('user').state.name).toBe('age');
+})
+
+test('bad action', () => {
+    const user = store.getModule('user');
+    expect(() => {
+        for(let i = 0; i<100000; i++) {
+            user.actions.badAction();
+        }
+    }).toThrow();
+})
+
 
 test('compatibilityAndMemoryOversizeTestAction', () => {
     const user = store.getModule('user');
-    for(let i = 0; i<1000000; i++) {
+    for(let i = 0; i<100000; i++) {
         user.actions.compatibilityAndMemoryOversizeTestAction();
     }
     expect(store.getModule('user').state).toBe(user.state);
