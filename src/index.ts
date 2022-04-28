@@ -17,6 +17,12 @@ enablePatches();
 export const isPromise = <T>(obj: any): obj is Promise<T> =>
   obj && typeof obj.then === "function";
 
+function isPlainObject(obj: any) {
+  return (
+    Object.prototype.toString.call(obj) === "[object Object]" && obj !== null
+  );
+}
+
 export const thunkMiddleware: Middleware<any> =
   ({ getState, getMaps, dispatch }) =>
   (next) =>
@@ -36,6 +42,7 @@ export const thunkMiddleware: Middleware<any> =
           (res, patch) => applyPatches(res, patch),
           nowState
         );
+        draftList = [];
         return finalState;
       };
 
@@ -44,16 +51,22 @@ export const thunkMiddleware: Middleware<any> =
           return applyPatchesToState(draftCache);
         }
         if (draftCache.length >= 1 && isDraft(s)) {
-			return applyPatchesToState(draftCache);
+          return applyPatchesToState(draftCache);
         }
         if (!!s && draftCache.length) {
-			applyPatchesToState(draftCache);
-		}
+          const res = applyPatchesToState(draftCache);
+          if (isPlainObject(s) && isPlainObject(getState())) {
+            return {
+              ...res,
+              ...s,
+            }
+          }
+        }
         return s;
       };
 
       const setState = (s: State) => {
-		draftCache = draftCache.filter((i) => i !== s);
+        draftCache = draftCache.filter((i) => i !== s);
         return next({
           ...record,
           state: applyPatchesToState([s]),
@@ -88,7 +101,7 @@ export const thunkMiddleware: Middleware<any> =
       });
       if (isPromise<ReturnType<Action>>(ns)) {
         return (ns as Promise<ReturnType<Action>>).then((ns) => {
-		  const res = _finishDraft(ns);
+          const res = _finishDraft(ns);
           if (ns === undefined && res === getState()) {
             next({
               ...record,
