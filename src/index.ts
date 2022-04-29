@@ -38,10 +38,12 @@ export const thunkMiddleware: Middleware<any> =
           .filter((i) => isDraft(i))
           .forEach((i) => finishDraft(i, (p) => patches.push(p)));
         const nowState = getState();
+
         const finalState = patches.reduce(
           (res, patch) => applyPatches(res, patch),
           nowState
         );
+        patches = [];
         draftList = [];
         return finalState;
       };

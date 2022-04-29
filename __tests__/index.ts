@@ -66,6 +66,16 @@ const _createStore = () => {
             const ns2 = getState();
             ns2.name = 'age';
         },
+        repeatAddAge: (age: number) => ({getState}: ThunkParams<State>) => {
+            const ns = getState();
+            ns.age = age;
+            
+            const ns2 = getState();
+            ns2.age++;
+
+            ns2.age = ns2.age + 1;
+            ns.age++;
+        },
         badAction: () => ({getState}: ThunkParams<State>) => {
             getState();
             const s = getState();
@@ -151,6 +161,11 @@ test('sync', () => {
     expect(store.getModule('user').state.age).toBe(4);
 });
 
+test('repeatAddAge', () => {
+    const user = store.getModule('user');
+    user.actions.repeatAddAge(20);
+    expect(store.getModule('user').state.age).toBe(12);
+})
 
 test('async', async () => {
     const user = store.getModule('user');
@@ -365,7 +380,7 @@ test('repeat get state action', () => {
 
 test('repeat get state action', () => {
     const user = store.getModule('user');
-    for(let i = 0; i<100000; i++) {
+    for(let i = 0; i<10000; i++) {
         user.actions.repeatGetState(1);
     }
     expect(store.getModule('user').state.name).toBe('age');
@@ -374,7 +389,7 @@ test('repeat get state action', () => {
 test('bad action', () => {
     const user = store.getModule('user');
     expect(() => {
-        for(let i = 0; i<100000; i++) {
+        for(let i = 0; i<10000; i++) {
             user.actions.badAction();
         }
     }).toThrow();
@@ -383,7 +398,7 @@ test('bad action', () => {
 
 test('compatibilityAndMemoryOversizeTestAction', () => {
     const user = store.getModule('user');
-    for(let i = 0; i<100000; i++) {
+    for(let i = 0; i<10000; i++) {
         user.actions.compatibilityAndMemoryOversizeTestAction();
     }
     expect(store.getModule('user').state).toBe(user.state);
@@ -391,8 +406,8 @@ test('compatibilityAndMemoryOversizeTestAction', () => {
 
 test('compatibilityAndMemoryOversizeTestAction2', () => {
     const user = store.getModule('user');
-    for(let i = 0; i<100000; i++) {
+    for(let i = 0; i<10000; i++) {
         user.actions.compatibilityAndMemoryOversizeTestAction2();
     }
-    expect(store.getModule('user').state.age).toBe(user.state.age + 100000);
+    expect(store.getModule('user').state.age).toBe(user.state.age + 10000);
 });
