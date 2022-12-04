@@ -49,6 +49,9 @@ const _createStore = () => {
     const state = {
         name: 'tom',
         age: 10,
+        deepAge: {
+            age: 10,
+        },
         todo: [
             {
                 name: 'study english',
@@ -59,37 +62,15 @@ const _createStore = () => {
     };
     type State = typeof state;
     const actions = {
-        doSetState: (age: number) => ({setState}: ImmerThunkParams<State>) => {
-            setState(s => {
-                s.age = age;
-            });
-        },
-        repeatGetState: (age: number) => ({setState}: ImmerThunkParams<State>) => {
-            setState(s => {
-                s.age = age;
-                s.name = 'age';
-            });
-        },
-        repeatAddAge: (age: number) => ({setState}: ImmerThunkParams<State>) => {
-            setState(s => {
-                s.age = age;
-                s.age++;
-            });
-        },
-        compatibilityAndMemoryOversizeTestAction: () => ({getState}: ImmerThunkParams<State>) => {
-            getState();
-            const s = getState();
-            return s;
-        },
-        compatibilityAndMemoryOversizeTestAction2: () => ({getState}: ImmerThunkParams<State>) => {
-            const s = getState();
-            return {
-                age: s.age + 1,
-            };
-        },
         updateAge: (age: number) => ({setState}: ImmerThunkParams<State>) => {
             return setState(s => {
                 s.age = age;
+            });;
+        },
+        updateAgeAsync: (age: number) => ({setState}: ImmerThunkParams<State>) => {
+            return setState(async s => {
+                await new Promise(res => setTimeout(res, 100));
+                s.deepAge.age = age;
             });;
         },
         fetchTodo: () => async ({setState}: ImmerThunkParams<State>) => {
@@ -100,21 +81,6 @@ const _createStore = () => {
         },
         fetchTodoWithoutReturn: () => async ({setState}: ImmerThunkParams<State>) => {
             const res = await mockFetchTodo();
-            setState(s => {
-                s.todo.push(...res);
-            })
-        },
-        fetchTodoWithoutReturn1: () => async ({setState}: ImmerThunkParams<State>) => {
-            const res = await mockFetchTodo();
-        },
-        fetchTodoWithoutReturn2: () => async ({setState}: ImmerThunkParams<State>) => {
-            const res = await mockFetchTodo2();
-            setState(s => {
-                s.todo.push(...res);
-            })
-        },
-        fetchTodoWithoutReturn3: () => async ({setState}: ImmerThunkParams<State>) => {
-            const res = await mockFetchTodo2();
             setState(s => {
                 s.todo.push(...res);
             })
@@ -143,19 +109,6 @@ beforeEach(() => {
     store = _createStore();
 });
 
-test('setState function', () => {
-    const user = store.getModule('user');
-    user.actions.doSetState(1);
-    expect(user.state).not.toEqual(store.getModule('user').state);
-    expect(store.getModule('user').state.age).toBe(1);
-
-    user.actions.doSetState(2);
-    user.actions.doSetState(3);
-    user.actions.doSetState(4);
-
-    expect(store.getModule('user').state.age).toBe(4);
-});
-
 test('sync', () => {
     const user = store.getModule('user');
     user.actions.updateAge(1);
@@ -169,11 +122,15 @@ test('sync', () => {
     expect(store.getModule('user').state.age).toBe(4);
 });
 
-test('repeatAddAge', () => {
+
+
+test('async setState', async () => {
     const user = store.getModule('user');
-    user.actions.repeatAddAge(20);
-    expect(store.getModule('user').state.age).toBe(21);
-})
+    await user.actions.updateAgeAsync(11);
+    expect(store.getModule('user').state.deepAge).not.toBe(user.state.deepAge);
+    expect(store.getModule('user').state.deepAge.age).toBe(11);
+});
+
 
 test('async', async () => {
     const user = store.getModule('user');
@@ -224,9 +181,7 @@ test('async paralle', async () => {
 test('return', async () => {
     const user = store.getModule('user');
     const res = await user.actions.fetchTodoWithoutReturn();
-    const res1 = await user.actions.fetchTodoWithoutReturn1();
     expect(res).toBe(undefined);
-    expect(res1).toBe(undefined);
 });
 
 test('async without return', async () => {
@@ -279,134 +234,3 @@ test('async without return in paraller', async () => {
 });
 
 
-
-
-
-test('async without return2', async () => {
-    const user = store.getModule('user');
-    await user.actions.fetchTodoWithoutReturn2();
-    expect(user.state).not.toEqual(store.getModule('user').state);
-    expect(store.getModule('user').state.todo[2]).toEqual({
-        name: 'work task1',
-        status: 0,
-        id: 2,
-    });
-
-    await user.actions.fetchTodoWithoutReturn2();
-    await user.actions.fetchTodoWithoutReturn2();
-    await user.actions.fetchTodoWithoutReturn2();
-    await user.actions.fetchTodoWithoutReturn2();
-
-    expect(store.getModule('user').state.todo.at(-1)).toEqual({
-        id: id - 1,
-        name: 'work task1',
-        status: 0,
-    });
-
-    expect(store.getModule('user').state.todo.length).toBe(11);
-});
-
-test('async without return in paraller2', async () => {
-    const user = store.getModule('user');
-    await user.actions.fetchTodoWithoutReturn2();
-    expect(user.state).not.toEqual(store.getModule('user').state);
-    expect(store.getModule('user').state.todo[2]).toEqual({
-        name: 'work task1',
-        status: 0,
-        id: 2,
-    });
-
-    await Promise.all([
-        user.actions.fetchTodoWithoutReturn2(),
-        user.actions.fetchTodoWithoutReturn2(),
-        user.actions.fetchTodoWithoutReturn2(),
-        user.actions.fetchTodoWithoutReturn2(),
-    ]);
-
-    expect(store.getModule('user').state.todo.length).toBe(11);
-});
-
-
-
-
-
-test('async without return3', async () => {
-    const user = store.getModule('user');
-    await user.actions.fetchTodoWithoutReturn3();
-    expect(user.state).not.toEqual(store.getModule('user').state);
-    expect(store.getModule('user').state.todo[2]).toEqual({
-        name: 'work task1',
-        status: 0,
-        id: 2,
-    });
-
-    await user.actions.fetchTodoWithoutReturn3();
-    await user.actions.fetchTodoWithoutReturn3();
-    await user.actions.fetchTodoWithoutReturn3();
-    await user.actions.fetchTodoWithoutReturn3();
-
-    expect(store.getModule('user').state.todo.at(-1)).toEqual({
-        id: id - 1,
-        name: 'work task1',
-        status: 0,
-    });
-
-    expect(store.getModule('user').state.todo.length).toBe(11);
-});
-
-test('async without return in paraller3', async () => {
-    const user = store.getModule('user');
-    await user.actions.fetchTodoWithoutReturn3();
-    expect(user.state).not.toEqual(store.getModule('user').state);
-    expect(store.getModule('user').state.todo[2]).toEqual({
-        name: 'work task1',
-        status: 0,
-        id: 2,
-    });
-
-    await Promise.all([
-        user.actions.fetchTodoWithoutReturn3(),
-        user.actions.fetchTodoWithoutReturn3(),
-        user.actions.fetchTodoWithoutReturn3(),
-        user.actions.fetchTodoWithoutReturn3(),
-    ]);
-
-    expect(store.getModule('user').state.todo.length).toBe(11);
-    expect(store.getModule('user').state.todo.at(-1)).toEqual({
-        id: id - 1,
-        name: 'work task1',
-        status: 0,
-    });
-});
-
-
-test('repeat get state action', () => {
-    const user = store.getModule('user');
-    user.actions.repeatGetState(1);
-    expect(store.getModule('user').state.name).toBe('age');
-})
-
-test('repeat get state action', () => {
-    const user = store.getModule('user');
-    for(let i = 0; i<10000; i++) {
-        user.actions.repeatGetState(1);
-    }
-    expect(store.getModule('user').state.name).toBe('age');
-})
-
-
-test('compatibilityAndMemoryOversizeTestAction', () => {
-    const user = store.getModule('user');
-    for(let i = 0; i<10000; i++) {
-        user.actions.compatibilityAndMemoryOversizeTestAction();
-    }
-    expect(store.getModule('user').state).toBe(user.state);
-});
-
-test('compatibilityAndMemoryOversizeTestAction2', () => {
-    const user = store.getModule('user');
-    for(let i = 0; i<10000; i++) {
-        user.actions.compatibilityAndMemoryOversizeTestAction2();
-    }
-    expect(store.getModule('user').state.age).toBe(user.state.age + 10000);
-});
