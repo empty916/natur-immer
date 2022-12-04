@@ -64,70 +64,60 @@ const _createStore = () => {
                 s.age = age;
             });
         },
-        repeatGetState: (age: number) => ({getState}: ThunkParams<State>) => {
-            const ns = getState();
-            ns.age = age;
-            
-            const ns2 = getState();
-            ns2.name = 'age';
+        repeatGetState: (age: number) => ({setState}: ImmerThunkParams<State>) => {
+            setState(s => {
+                s.age = age;
+                s.name = 'age';
+            });
         },
-        repeatAddAge: (age: number) => ({getState}: ThunkParams<State>) => {
-            const ns = getState();
-            ns.age = age;
-            
-            const ns2 = getState();
-            ns2.age++;
-
-            ns2.age = ns2.age + 1;
-            ns.age++;
+        repeatAddAge: (age: number) => ({setState}: ImmerThunkParams<State>) => {
+            setState(s => {
+                s.age = age;
+                s.age++;
+            });
         },
-        badAction: () => ({getState}: ThunkParams<State>) => {
-            getState();
-            const s = getState();
-            return {
-                ...s
-            };
-        },
-        compatibilityAndMemoryOversizeTestAction: () => ({getState}: ThunkParams<State>) => {
+        compatibilityAndMemoryOversizeTestAction: () => ({getState}: ImmerThunkParams<State>) => {
             getState();
             const s = getState();
             return s;
         },
-        compatibilityAndMemoryOversizeTestAction2: () => ({getState}: ThunkParams<State>) => {
+        compatibilityAndMemoryOversizeTestAction2: () => ({getState}: ImmerThunkParams<State>) => {
             const s = getState();
             return {
                 age: s.age + 1,
             };
         },
-        updateAge: (age: number) => ({getState}: ThunkParams<State>) => {
-            const ns = getState();
-            ns.age = age;
-            return ns;
+        updateAge: (age: number) => ({setState}: ImmerThunkParams<State>) => {
+            return setState(s => {
+                s.age = age;
+            });;
         },
-        fetchTodo: () => async ({getState}: ThunkParams<State>) => {
+        fetchTodo: () => async ({setState}: ImmerThunkParams<State>) => {
             const res = await mockFetchTodo();
-            const ns = getState();
-            ns.todo.push(...res);
-            return ns;
+            return setState(s => {
+                s.todo.push(...res);
+            })
         },
-        fetchTodoWithoutReturn: () => async ({getState}: ThunkParams<State>) => {
-            const ns = getState();
+        fetchTodoWithoutReturn: () => async ({setState}: ImmerThunkParams<State>) => {
             const res = await mockFetchTodo();
-            ns.todo.push(...res);
+            setState(s => {
+                s.todo.push(...res);
+            })
         },
-        fetchTodoWithoutReturn1: () => async ({getState}: ThunkParams<State>) => {
-            const ns = getState();
+        fetchTodoWithoutReturn1: () => async ({setState}: ImmerThunkParams<State>) => {
             const res = await mockFetchTodo();
         },
-        fetchTodoWithoutReturn2: () => async ({getState}: ThunkParams<State>) => {
-            const ns = getState();
+        fetchTodoWithoutReturn2: () => async ({setState}: ImmerThunkParams<State>) => {
             const res = await mockFetchTodo2();
-            ns.todo.push(...res);
+            setState(s => {
+                s.todo.push(...res);
+            })
         },
-        fetchTodoWithoutReturn3: () => async ({getState}: ThunkParams<State>) => {
+        fetchTodoWithoutReturn3: () => async ({setState}: ImmerThunkParams<State>) => {
             const res = await mockFetchTodo2();
-            const ns = getState();
-            ns.todo.push(...res);
+            setState(s => {
+                s.todo.push(...res);
+            })
         },
     }
     return createStore({
@@ -182,7 +172,7 @@ test('sync', () => {
 test('repeatAddAge', () => {
     const user = store.getModule('user');
     user.actions.repeatAddAge(20);
-    expect(store.getModule('user').state.age).toBe(12);
+    expect(store.getModule('user').state.age).toBe(21);
 })
 
 test('async', async () => {
@@ -235,7 +225,7 @@ test('return', async () => {
     const user = store.getModule('user');
     const res = await user.actions.fetchTodoWithoutReturn();
     const res1 = await user.actions.fetchTodoWithoutReturn1();
-    expect(res).not.toBe(undefined);
+    expect(res).toBe(undefined);
     expect(res1).toBe(undefined);
 });
 
@@ -402,15 +392,6 @@ test('repeat get state action', () => {
         user.actions.repeatGetState(1);
     }
     expect(store.getModule('user').state.name).toBe('age');
-})
-
-test('bad action', () => {
-    const user = store.getModule('user');
-    expect(() => {
-        for(let i = 0; i<10000; i++) {
-            user.actions.badAction();
-        }
-    }).toThrow();
 })
 
 
