@@ -1,5 +1,5 @@
-import { Action, Middleware, State } from "natur";
-import {
+import { Action, GenMapsType, Maps, Middleware, State, ThunkParams } from "natur";
+import produce, {
   castDraft,
   createDraft,
   Draft,
@@ -11,17 +11,18 @@ import {
   applyPatches,
   original,
 } from "immer";
+import { isObject, isPromise } from "./utils";
 
 enablePatches();
 
-export const isPromise = <T>(obj: any): obj is Promise<T> =>
-  obj && typeof obj.then === "function";
 
-function isPlainObject(obj: any) {
-  return (
-    Object.prototype.toString.call(obj) === "[object Object]" && obj !== null
-  );
+export interface ImmerThunkParams<S = any, M extends Maps = any> {
+  setState(ps: Partial<S> | ((s: S) => any)): S;
+  getState(): Draft<S>;
+  getMaps: () => GenMapsType<M, S>;
+  dispatch: (moduleNameAndActionName: string, ...params: any) => any;
 }
+
 
 export const thunkMiddleware: Middleware<any> =
   ({ getState, getMaps, dispatch }) =>
@@ -57,17 +58,23 @@ export const thunkMiddleware: Middleware<any> =
         }
         if (!!s && draftCache.length) {
           const res = applyPatchesToState(draftCache);
-          if (isPlainObject(s) && isPlainObject(getState())) {
+          if (isObject(s) && isObject(getState())) {
             return {
               ...res,
               ...s,
-            }
+            };
           }
         }
         return s;
       };
 
-      const setState = (s: State) => {
+      const setState = (s: State | ((s: State) => any)) => {
+        if (typeof s === 'function') {
+          return next({
+            ...record,
+            state: produce(s)(getState()),
+          });
+        }
         draftCache = draftCache.filter((i) => i !== s);
         return next({
           ...record,

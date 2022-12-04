@@ -1,4 +1,4 @@
-import { thunkMiddleware } from './../src/index';
+import { thunkMiddleware, ImmerThunkParams } from './../src/index';
 import { createStore } from 'natur';
 import {
     ThunkParams,
@@ -59,6 +59,11 @@ const _createStore = () => {
     };
     type State = typeof state;
     const actions = {
+        doSetState: (age: number) => ({setState}: ImmerThunkParams<State>) => {
+            setState(s => {
+                s.age = age;
+            });
+        },
         repeatGetState: (age: number) => ({getState}: ThunkParams<State>) => {
             const ns = getState();
             ns.age = age;
@@ -146,6 +151,19 @@ let store = _createStore();
 beforeEach(() => {
     id = 1;
     store = _createStore();
+});
+
+test('setState function', () => {
+    const user = store.getModule('user');
+    user.actions.doSetState(1);
+    expect(user.state).not.toEqual(store.getModule('user').state);
+    expect(store.getModule('user').state.age).toBe(1);
+
+    user.actions.doSetState(2);
+    user.actions.doSetState(3);
+    user.actions.doSetState(4);
+
+    expect(store.getModule('user').state.age).toBe(4);
 });
 
 test('sync', () => {
