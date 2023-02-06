@@ -1,12 +1,21 @@
 import { GenMapsType, Maps, Middleware, State } from "natur";
-import produce, { Draft } from "immer";
+import produce from "immer";
 
 export interface ImmerThunkParams<S = any, M extends Maps = any> {
   setState(ps: Partial<S> | ((s: S) => any)): S;
   getState(): S;
   getMaps: () => GenMapsType<M, S>;
+  /**
+	 * please use localDispatch instead
+	 * @deprecated
+	 * @param moduleNameAndActionName
+	 * @param params
+	 */
   dispatch: (moduleNameAndActionName: string, ...params: any) => any;
+  localDispatch: (actionName: string, ...params: any) => any;
 }
+
+export type ITP = ImmerThunkParams;
 
 export const thunkMiddleware: Middleware<any> =
   ({ getState, getMaps, dispatch }) =>
@@ -33,6 +42,9 @@ export const thunkMiddleware: Middleware<any> =
         }
         return dispatch(record.moduleName, action, ...arg);
       };
+      const localDispatch = (action: string, ...arg: any[]) => {
+        return dispatch(record.moduleName, action, ...arg);
+      };
 
       return next({
         ...record,
@@ -41,6 +53,7 @@ export const thunkMiddleware: Middleware<any> =
           setState,
           getMaps,
           dispatch: _dispatch,
+          localDispatch,
         }),
       });
     }
