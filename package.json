@@ -1,6 +1,6 @@
 {
   "name": "natur-immer",
-  "version": "1.0.7",
+  "version": "1.0.8-beta1",
   "description": "immmer middleware of natur",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,7 +8,8 @@
     "test": "jest",
     "build": "rimraf dist && tsc",
     "prepublish": "npm run test && npm run build",
-    "pub": "yarn publish"
+    "pub": "yarn publish --tag next",
+    "pub:release": "yarn publish"
   },
   "files": [
     "dist"
