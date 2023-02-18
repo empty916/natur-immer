@@ -6,11 +6,11 @@ export interface ImmerThunkParams<S = any, M extends Maps = any> {
   getState(): S;
   getMaps: () => GenMapsType<M, S>;
   /**
-	 * please use localDispatch instead
-	 * @deprecated
-	 * @param moduleNameAndActionName
-	 * @param params
-	 */
+   * please use localDispatch instead
+   * @deprecated
+   * @param moduleNameAndActionName
+   * @param params
+   */
   dispatch: (moduleNameAndActionName: string, ...params: any) => any;
   localDispatch: (actionName: string, ...params: any) => any;
 }
