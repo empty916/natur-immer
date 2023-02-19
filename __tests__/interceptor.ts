@@ -37,6 +37,12 @@ const _createStore = () => {
                 s.age = age;
             });
         }),
+        withAPIUpdateNameAge: withImmerAPI((name: string, age: number, {setState}: WIA<State>) =>  {
+            return setState(s => {
+                s.name = name;
+                s.age = age;
+            });
+        }),
         updateAgeAsync: (age: number) => ({setState}: ImmerThunkParams<State>) => {
             return setState(async s => {
                 await new Promise(res => setTimeout(res, 100));
@@ -44,6 +50,8 @@ const _createStore = () => {
             });;
         },
     }
+    type a = Parameters<typeof actions.updateAge>
+
     return createStore({
         user: {
             state,
@@ -66,6 +74,7 @@ beforeEach(() => {
     store = _createStore();
 });
 
+
 test('normal', () => {
     expect(store.getModule('user').state.age).toBe(10);
     store.dispatch('user', 'updateAge', 1);
@@ -75,4 +84,6 @@ test('normal with api', () => {
     expect(store.getModule('user').state.age).toBe(10);
     store.dispatch('user', 'withAPIUpdateAge', 1);
     expect(store.getModule('user').state.age).toBe(1);
+    store.getModule('user').actions.withAPIUpdateNameAge;
 })
+
