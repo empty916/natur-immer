@@ -1,4 +1,4 @@
-import { WIA, withImmerAPI, WithImmerAPI, withImmerAPIInterceptor } from './../src/interceptors';
+import { WIA, withImmerAPI, WithImmerAPI, withImmerAPIInterceptor, withAPI } from './../src/interceptors';
 import { thunkMiddleware, ImmerThunkParams } from './../src/index';
 import { createStore } from 'natur';
 import {
@@ -32,14 +32,9 @@ const _createStore = () => {
                 s.age = age;
             });;
         },
-        withAPIUpdateAge: withImmerAPI((age: number, {setState}: WIA<State>) =>  {
+        withAPIUpdateAge: withAPI((age: number, {setState, getState}: WIA<State>) =>  {
             return setState(s => {
-                s.age = age;
-            });
-        }),
-        withAPIUpdateNameAge: withImmerAPI((name: string, age: number, {setState}: WIA<State>) =>  {
-            return setState(s => {
-                s.name = name;
+                expect(s).toEqual(getState())
                 s.age = age;
             });
         }),
@@ -50,7 +45,6 @@ const _createStore = () => {
             });;
         },
     }
-    type a = Parameters<typeof actions.updateAge>
 
     return createStore({
         user: {
@@ -84,6 +78,5 @@ test('normal with api', () => {
     expect(store.getModule('user').state.age).toBe(10);
     store.dispatch('user', 'withAPIUpdateAge', 1);
     expect(store.getModule('user').state.age).toBe(1);
-    store.getModule('user').actions.withAPIUpdateNameAge;
 })
 

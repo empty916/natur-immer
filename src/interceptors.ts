@@ -55,7 +55,7 @@ export const withImmerAPIInterceptor: Interceptor<any> =
     return next(record);
   };
 
-type Last<F extends AnyFun, T = Parameters<F>, > = T extends [...any, infer L] ? L : never
+export type Last<F extends AnyFun, T = Parameters<F>, > = T extends [...any, infer L] ? L : never
 
 export type ExcludeLastParamIfItIsWIA<
     F extends AnyFun,
@@ -82,11 +82,6 @@ function withImmerAPI<F extends (...arg: any) => any>(fn: F) {
 
 export const withAPI = withImmerAPI;
 
-const f1 = (age: number, {setState}: WIA<State>) =>  {
-    return setState(s => {
-        s.age = age;
-    });
-};
 
 export {
     withImmerAPI,
