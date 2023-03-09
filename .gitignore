@@ -10,3 +10,4 @@
 /dist
 /.mfsu
 /coverage
+.DS_Store
