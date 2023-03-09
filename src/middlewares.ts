@@ -1,7 +1,7 @@
 import { GenMapsType, Maps, Middleware, State } from "natur";
 import produce from "immer";
 
-export interface ImmerThunkParams<S = any, M extends Maps = any> {
+export interface ImmerThunkParams<S extends any = any, M extends Maps = any> {
   setState(ps: Partial<S> | ((s: S) => any)): S;
   getState(): S;
   getMaps: () => GenMapsType<M, S>;
@@ -15,7 +15,7 @@ export interface ImmerThunkParams<S = any, M extends Maps = any> {
   localDispatch: (actionName: string, ...params: any) => any;
 }
 
-export type ITP = ImmerThunkParams;
+export interface ITP<S extends any = any, M extends Maps = any> extends ImmerThunkParams<S, M> {}
 
 export const thunkMiddleware: Middleware<any> =
   ({ getState, getMaps, dispatch }) =>
