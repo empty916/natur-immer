@@ -6,6 +6,11 @@ export const isObject = <T = Obj>(obj: any): obj is T => typeof obj === 'object'
 export const isPromise = <T>(obj: any): obj is Promise<T> =>
   obj && typeof obj.then === "function";
 
+export const warning = (string: string) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.warn(string);
+  }
+}
 
 export interface traverseObjectHandler {
     (

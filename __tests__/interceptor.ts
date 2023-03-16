@@ -44,6 +44,31 @@ const _createStore = () => {
                 s.deepAge.age = age;
             });;
         },
+        withAPIUpdateAgeNoArg: withAPI(({setState, getState}: WIA<State>) =>  {
+            return setState(s => {
+                expect(s).toEqual(getState())
+                s.age = 0;
+            });
+        }),
+        withAPIUpdateAgeMoreArg: withAPI((age: number, {setState, getState}: WIA<State>) =>  {
+            return setState(s => {
+                expect(s).toEqual(getState())
+                s.age = age;
+            });
+        }),
+        withAPIUpdateAgeLessArg: withAPI((age: number, name: string, {setState, getState}: WIA<State>) =>  {
+            return setState(s => {
+                expect(s).toEqual(getState())
+                expect(name).toEqual(undefined);
+                s.age = age;
+            });
+        }),
+
+        withAPIUpdateAgeErrorNumArg: withAPI((age: number, name: string, {setState, getState}: WIA<State>) =>  {
+            return setState(s => {
+                s.age = age;
+            });
+        }),
     }
 
     return createStore({
@@ -73,10 +98,80 @@ test('normal', () => {
     expect(store.getModule('user').state.age).toBe(10);
     store.dispatch('user', 'updateAge', 1);
     expect(store.getModule('user').state.age).toBe(1);
-})
+});
+
 test('normal with api', () => {
     expect(store.getModule('user').state.age).toBe(10);
     store.dispatch('user', 'withAPIUpdateAge', 1);
     expect(store.getModule('user').state.age).toBe(1);
 })
 
+test('with api with no args', () => {
+    expect(store.getModule('user').state.age).toBe(10);
+    // @ts-ignore
+    store.dispatch('user', 'withAPIUpdateAgeNoArg', 1, 2,3);
+    expect(store.getModule('user').state.age).toBe(0);
+
+    store.dispatch('user', 'updateAge', 10);
+    expect(store.getModule('user').state.age).toBe(10);
+    // @ts-ignore
+    store.dispatch('user', 'withAPIUpdateAgeNoArg', 1);
+    expect(store.getModule('user').state.age).toBe(0);
+
+
+    store.dispatch('user', 'updateAge', 10);
+    expect(store.getModule('user').state.age).toBe(10);
+
+    // @ts-ignore
+    store.dispatch('user', 'withAPIUpdateAgeNoArg');
+    expect(store.getModule('user').state.age).toBe(0);
+});
+
+test('with api with more args', () => {
+    expect(store.getModule('user').state.age).toBe(10);
+    // @ts-ignore
+    store.dispatch('user', 'withAPIUpdateAgeMoreArg', 1, 2, 3);
+    expect(store.getModule('user').state.age).toBe(1);
+
+
+    store.dispatch('user', 'updateAge', 10);
+    expect(store.getModule('user').state.age).toBe(10);
+
+
+    // @ts-ignore
+    store.dispatch('user', 'withAPIUpdateAgeMoreArg', 2);
+    expect(store.getModule('user').state.age).toBe(2);
+
+});
+
+
+
+test('with api with less args', () => {
+    expect(store.getModule('user').state.age).toBe(10);
+    // @ts-ignore
+    store.dispatch('user', 'withAPIUpdateAgeLessArg', 1);
+    expect(store.getModule('user').state.age).toBe(1);
+
+
+    store.dispatch('user', 'updateAge', 10);
+    expect(store.getModule('user').state.age).toBe(10);
+
+
+    // @ts-ignore
+    store.dispatch('user', 'withAPIUpdateAgeLessArg', 1, undefined, undefined, undefined);
+    expect(store.getModule('user').state.age).toBe(1);
+
+
+})
+
+
+
+
+test('with api with error args', () => {
+    expect(store.getModule('user').state.age).toBe(10);
+
+    // @ts-ignore
+    store.dispatch('user', 'withAPIUpdateAgeErrorNumArg');
+    expect(store.getModule('user').state.age).toBe(undefined);
+
+})
