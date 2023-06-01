@@ -12,6 +12,9 @@ export class StateContainer {
   }
 }
 
+/**
+ * @deprecated
+ */
 export type WithImmerAPI<S = any, M extends Maps = any> = {
   getState: () => S;
   setState: (s: Partial<S> | ((s: S) => any)) => S;
@@ -20,9 +23,16 @@ export type WithImmerAPI<S = any, M extends Maps = any> = {
 };
 
 
-
+/**
+ * @deprecated
+ */
 export type WIA<S = any, M extends Maps = any> = WithImmerAPI<S, M>;
 
+/**
+ * @deprecated
+ * @param api 
+ * @returns 
+ */
 export const withImmerAPIInterceptor: Interceptor<any> =
   (api) => (next) => (record: any) => {
     const { getMaps, getState, dispatch } = api;
@@ -92,6 +102,12 @@ export type ExcludeLastParamIfItIsWIA<
 
 export type ExcludeWIA<F extends AnyFun> = ExcludeLastParamIfItIsWIA<F>;
 
+
+/**
+ * @deprecated
+ * @param fn 
+ * @returns 
+ */
 function withImmerAPI<F extends (...arg: any) => any>(fn: F) {
   const fnLength = fn.length;
 
@@ -115,6 +131,9 @@ function withImmerAPI<F extends (...arg: any) => any>(fn: F) {
   return fnProxy as (...args: ExcludeWIA<F>) => ReturnType<F>;
 };
 
+/**
+ * @deprecated
+ */
 export const withAPI = withImmerAPI;
 
 
