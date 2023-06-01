@@ -1,6 +1,6 @@
 {
   "name": "natur-immer",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "immmer middleware of natur",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
