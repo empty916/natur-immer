@@ -1,6 +1,6 @@
 {
   "name": "natur-immer",
-  "version": "1.0.12-beta4",
+  "version": "1.0.12",
   "description": "immmer middleware of natur",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -27,7 +27,7 @@
   "devDependencies": {
     "@types/jest": "^26.0.23",
     "jest": "^27.0.3",
-    "natur": "latest",
+    "natur": "^3.0.1",
     "react": "^17.0.2",
     "rimraf": "^3.0.2",
     "ts-jest": "^27.0.1",
